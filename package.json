@@ -1,0 +1,19 @@
+{
+  "name": "bulls-and-cows",
+  "version": "1.0.0",
+  "description": "A number guessing game implemented with TypeScript using functional programming principles.",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "AlenaVP",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  },
+  "type": "module"
+}
