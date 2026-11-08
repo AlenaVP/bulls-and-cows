@@ -1,8 +1,7 @@
-const DIGITS = '0123456789abcdef';
-const SUPPORTED_BASES = [2, 8, 10, 16];
+import { DIGITS, MAX_BASE, MIN_BASE, SUPPORTED_BASES } from './constants';
 
 export function createDigitValidator(base: number): (char: string) => boolean {
-  if (!Number.isInteger(base) || base < 2 || base > 16) {
+  if (!Number.isInteger(base) || base < MIN_BASE || base > MAX_BASE) {
     throw new RangeError('Base must be an integer between 2 and 16.');
   }
 
