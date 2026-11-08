@@ -5,6 +5,10 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit"
   },
@@ -12,7 +16,12 @@
   "author": "AlenaVP",
   "license": "ISC",
   "devDependencies": {
-    "typescript": "^7.0.2",
+    "@eslint/js": "9.36.0",
+    "eslint": "9.36.0",
+    "eslint-config-prettier": "10.1.8",
+    "prettier": "3.9.10",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.46.4",
     "vitest": "^5.1.0"
   },
   "type": "module"
