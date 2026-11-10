@@ -1,8 +1,13 @@
 import { createDigitValidator } from '../game/logic/create-digit-validator.js';
 import { isValidGuess } from '../game/logic/is-valid-guess.js';
+import { addGameRecord } from '../game/state/add-game-record.js';
 import { createGame } from '../game/state/create-game.js';
+import { createGameRecord } from '../game/state/create-game-record.js';
 import { getGameDuration } from '../game/state/get-game-duration.js';
+import { getLeaderboard } from '../game/state/get-leaderboard.js';
+import { loadLeaderboard } from '../game/state/load-leaderboard.js';
 import { submitGuess } from '../game/state/submit-guess.js';
+import type { GameRecord } from '../game/types/game-record.js';
 import type { GameSettings } from '../game/types/game-settings.js';
 import type { GameState } from '../game/types/game-state.js';
 
@@ -135,9 +140,30 @@ function formatDuration(duration: number): string {
   return `${formatPart(minutes)}:${formatPart(seconds)}`;
 }
 
+function createLeaderboardRow(record: GameRecord, index: number): HTMLTableRowElement {
+  const row = document.createElement('tr');
+
+  const values = [
+    String(index + 1),
+    `${record.settings.length} digits / base ${record.settings.base}`,
+    String(record.attempts),
+    formatDuration(record.duration),
+    new Date(record.completedAt).toLocaleDateString(),
+  ];
+
+  values.forEach((value) => {
+    const cell = document.createElement('td');
+    cell.textContent = value;
+    row.append(cell);
+  });
+
+  return row;
+}
+
 export function renderApp(root: HTMLElement): void {
   let currentGame: GameState | null = null;
   let timerId: ReturnType<typeof setInterval> | null = null;
+  let leaderboardRecords: GameRecord[] = getLeaderboard(loadLeaderboard());
 
   const app = document.createElement('div');
   app.className = 'app-shell';
@@ -208,6 +234,47 @@ export function renderApp(root: HTMLElement): void {
     'Your best game results will be displayed here.',
     'panel--leaderboard',
   );
+
+  const leaderboardContent = document.createElement('div');
+  leaderboardContent.className = 'leaderboard-content';
+  leaderboardPanel.append(leaderboardContent);
+
+  function renderLeaderboard(): void {
+    leaderboardContent.replaceChildren();
+
+    if (leaderboardRecords.length === 0) {
+      const emptyMessage = document.createElement('p');
+      emptyMessage.className = 'leaderboard-empty';
+      emptyMessage.textContent = 'No completed games yet. Win a game to set your first record!';
+      leaderboardContent.append(emptyMessage);
+      return;
+    }
+
+    const table = document.createElement('table');
+    table.className = 'leaderboard-table';
+
+    const headers = ['#', 'Game', 'Attempts', 'Time', 'Date'];
+    const tableHead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+
+    headers.forEach((value) => {
+      const cell = document.createElement('th');
+      cell.scope = 'col';
+      cell.textContent = value;
+      headerRow.append(cell);
+    });
+
+    tableHead.append(headerRow);
+
+    const tableBody = document.createElement('tbody');
+
+    leaderboardRecords.forEach((record, index) => {
+      tableBody.append(createLeaderboardRow(record, index));
+    });
+
+    table.append(tableHead, tableBody);
+    leaderboardContent.append(table);
+  }
 
   function stopTimer(): void {
     if (timerId !== null) {
@@ -316,6 +383,13 @@ export function renderApp(root: HTMLElement): void {
       gameInfo.textContent = `Congratulations! You found the secret number: ${currentGame.secret}.`;
       guessFeedback.textContent = `Solved in ${currentGame.history.length} attempts and ${duration}!`;
       guessInput.disabled = true;
+
+      const record = createGameRecord(currentGame);
+
+      if (record) {
+        leaderboardRecords = addGameRecord(record);
+        renderLeaderboard();
+      }
     } else {
       gameInfo.textContent = `Attempts: ${currentGame.history.length}`;
       guessInput.focus();
@@ -325,6 +399,8 @@ export function renderApp(root: HTMLElement): void {
   });
 
   const settingsPanel = createSettingsPanel(startGame);
+
+  renderLeaderboard();
 
   main.append(settingsPanel, gamePanel, historyPanel, leaderboardPanel);
   app.append(header, main);

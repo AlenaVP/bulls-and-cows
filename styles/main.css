@@ -263,3 +263,47 @@ select {
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.05em;
 }
+
+.leaderboard-content {
+  margin-top: 20px;
+  overflow-x: auto;
+}
+
+.leaderboard-empty {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.leaderboard-table th {
+  color: var(--color-muted);
+  font-weight: 600;
+}
+
+.leaderboard-table td {
+  color: var(--color-text);
+}
+
+.leaderboard-table tbody tr:first-child td:first-child {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.leaderboard-table tbody tr:last-child td {
+  border-bottom: 0;
+}
