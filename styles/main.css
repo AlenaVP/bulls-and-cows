@@ -254,3 +254,12 @@ select {
     flex-direction: column;
   }
 }
+
+.game-timer {
+  margin: 16px 0 0;
+  color: var(--color-accent);
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+}

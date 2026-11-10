@@ -1,7 +1,8 @@
 import { createDigitValidator } from '../game/logic/create-digit-validator.js';
 import { isValidGuess } from '../game/logic/is-valid-guess.js';
-import { submitGuess } from '../game/state/submit-guess.js';
 import { createGame } from '../game/state/create-game.js';
+import { getGameDuration } from '../game/state/get-game-duration.js';
+import { submitGuess } from '../game/state/submit-guess.js';
 import type { GameSettings } from '../game/types/game-settings.js';
 import type { GameState } from '../game/types/game-state.js';
 
@@ -119,8 +120,24 @@ function createHistoryItem(guess: string, bulls: number, cows: number): HTMLLIEl
   return item;
 }
 
+function formatDuration(duration: number): string {
+  const totalSeconds = Math.floor(duration / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const formatPart = (value: number): string => String(value).padStart(2, '0');
+
+  if (hours > 0) {
+    return `${formatPart(hours)}:${formatPart(minutes)}:${formatPart(seconds)}`;
+  }
+
+  return `${formatPart(minutes)}:${formatPart(seconds)}`;
+}
+
 export function renderApp(root: HTMLElement): void {
   let currentGame: GameState | null = null;
+  let timerId: ReturnType<typeof setInterval> | null = null;
 
   const app = document.createElement('div');
   app.className = 'app-shell';
@@ -151,6 +168,10 @@ export function renderApp(root: HTMLElement): void {
   gameInfo.className = 'game-info';
   gameInfo.textContent = 'Choose your settings and start a new game.';
 
+  const gameTimer = document.createElement('p');
+  gameTimer.className = 'game-timer';
+  gameTimer.textContent = 'Time: 00:00';
+
   const guessForm = document.createElement('form');
   guessForm.className = 'guess-form';
 
@@ -174,7 +195,7 @@ export function renderApp(root: HTMLElement): void {
   guessFeedback.setAttribute('aria-live', 'polite');
 
   guessForm.append(guessInput, submitButton);
-  gamePanel.append(gameInfo, guessForm, guessFeedback);
+  gamePanel.append(gameInfo, gameTimer, guessForm, guessFeedback);
 
   const historyPanel = createPanel('Guess history', 'Your previous attempts will appear here.', 'panel--history');
 
@@ -188,6 +209,21 @@ export function renderApp(root: HTMLElement): void {
     'panel--leaderboard',
   );
 
+  function stopTimer(): void {
+    if (timerId !== null) {
+      clearInterval(timerId);
+      timerId = null;
+    }
+  }
+
+  function updateTimer(): void {
+    if (!currentGame) {
+      return;
+    }
+
+    gameTimer.textContent = `Time: ${formatDuration(getGameDuration(currentGame))}`;
+  }
+
   function updateSubmitButton(): void {
     if (!currentGame || currentGame.status === 'won') {
       submitButton.disabled = true;
@@ -198,6 +234,8 @@ export function renderApp(root: HTMLElement): void {
   }
 
   function startGame(settings: GameSettings): void {
+    stopTimer();
+
     currentGame = createGame(settings);
 
     guessInput.value = '';
@@ -209,6 +247,9 @@ export function renderApp(root: HTMLElement): void {
     guessFeedback.textContent = '';
 
     gameInfo.textContent = `New game started. Find the ${settings.length}-digit number in base ${settings.base}.`;
+
+    updateTimer();
+    timerId = setInterval(updateTimer, 1000);
 
     updateSubmitButton();
     guessInput.focus();
@@ -267,8 +308,13 @@ export function renderApp(root: HTMLElement): void {
     guessFeedback.textContent = '';
 
     if (currentGame.status === 'won') {
+      stopTimer();
+      updateTimer();
+
+      const duration = formatDuration(getGameDuration(currentGame));
+
       gameInfo.textContent = `Congratulations! You found the secret number: ${currentGame.secret}.`;
-      guessFeedback.textContent = `Solved in ${currentGame.history.length} attempts!`;
+      guessFeedback.textContent = `Solved in ${currentGame.history.length} attempts and ${duration}!`;
       guessInput.disabled = true;
     } else {
       gameInfo.textContent = `Attempts: ${currentGame.history.length}`;
