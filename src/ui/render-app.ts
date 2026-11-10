@@ -1,3 +1,6 @@
+import { createDigitValidator } from '../game/logic/create-digit-validator.js';
+import { isValidGuess } from '../game/logic/is-valid-guess.js';
+import { submitGuess } from '../game/state/submit-guess.js';
 import { createGame } from '../game/state/create-game.js';
 import type { GameSettings } from '../game/types/game-settings.js';
 import type { GameState } from '../game/types/game-state.js';
@@ -67,10 +70,6 @@ function createSettingsPanel(onStartGame: (settings: GameSettings) => void): HTM
   startButton.type = 'button';
   startButton.textContent = 'New game';
 
-  const status = document.createElement('p');
-  status.className = 'game-status';
-  status.setAttribute('aria-live', 'polite');
-
   function updateLengthOptions(): void {
     const base = Number(baseSelect.value);
     const currentLength = Number(lengthSelect.value);
@@ -91,18 +90,33 @@ function createSettingsPanel(onStartGame: (settings: GameSettings) => void): HTM
   baseSelect.addEventListener('change', updateLengthOptions);
 
   startButton.addEventListener('click', () => {
-    const settings: GameSettings = {
+    onStartGame({
       length: Number(lengthSelect.value),
       base: Number(baseSelect.value),
-    };
-
-    onStartGame(settings);
+    });
   });
 
   form.append(baseField.field, lengthField.field, startButton);
   panel.append(form);
 
   return panel;
+}
+
+function createHistoryItem(guess: string, bulls: number, cows: number): HTMLLIElement {
+  const item = document.createElement('li');
+  item.className = 'history-item';
+
+  const guessValue = document.createElement('span');
+  guessValue.className = 'history-item__guess';
+  guessValue.textContent = guess;
+
+  const result = document.createElement('span');
+  result.className = 'history-item__result';
+  result.textContent = `${bulls} bulls, ${cows} cows`;
+
+  item.append(guessValue, result);
+
+  return item;
 }
 
 export function renderApp(root: HTMLElement): void {
@@ -131,31 +145,142 @@ export function renderApp(root: HTMLElement): void {
   const main = document.createElement('main');
   main.className = 'app-layout';
 
-  const settingsPanel = createSettingsPanel((settings) => {
-    currentGame = createGame(settings);
-
-    const gameInfo = main.querySelector<HTMLElement>('.game-info');
-
-    if (gameInfo && currentGame) {
-      gameInfo.textContent = `New game started: ${currentGame.settings.length} digits, base ${currentGame.settings.base}.`;
-    }
-  });
-
   const gamePanel = createPanel('Your game', 'Enter your guesses and discover the secret number.', 'panel--game');
 
   const gameInfo = document.createElement('p');
   gameInfo.className = 'game-info';
   gameInfo.textContent = 'Choose your settings and start a new game.';
 
-  gamePanel.append(gameInfo);
+  const guessForm = document.createElement('form');
+  guessForm.className = 'guess-form';
 
-  main.append(
-    settingsPanel,
-    gamePanel,
-    createPanel('Guess history', 'Your previous attempts will appear here.', 'panel--history'),
-    createPanel('Leaderboard', 'Your best game results will be displayed here.', 'panel--leaderboard'),
+  const guessInput = document.createElement('input');
+  guessInput.className = 'guess-input';
+  guessInput.type = 'text';
+  guessInput.autocomplete = 'off';
+  guessInput.spellcheck = false;
+  guessInput.placeholder = 'Enter your guess';
+  guessInput.setAttribute('aria-label', 'Your guess');
+  guessInput.disabled = true;
+
+  const submitButton = document.createElement('button');
+  submitButton.className = 'button button--primary';
+  submitButton.type = 'submit';
+  submitButton.textContent = 'Submit guess';
+  submitButton.disabled = true;
+
+  const guessFeedback = document.createElement('p');
+  guessFeedback.className = 'guess-feedback';
+  guessFeedback.setAttribute('aria-live', 'polite');
+
+  guessForm.append(guessInput, submitButton);
+  gamePanel.append(gameInfo, guessForm, guessFeedback);
+
+  const historyPanel = createPanel('Guess history', 'Your previous attempts will appear here.', 'panel--history');
+
+  const historyList = document.createElement('ol');
+  historyList.className = 'history-list';
+  historyPanel.append(historyList);
+
+  const leaderboardPanel = createPanel(
+    'Leaderboard',
+    'Your best game results will be displayed here.',
+    'panel--leaderboard',
   );
 
+  function updateSubmitButton(): void {
+    if (!currentGame || currentGame.status === 'won') {
+      submitButton.disabled = true;
+      return;
+    }
+
+    submitButton.disabled = !isValidGuess(guessInput.value, currentGame.settings.length, currentGame.settings.base);
+  }
+
+  function startGame(settings: GameSettings): void {
+    currentGame = createGame(settings);
+
+    guessInput.value = '';
+    guessInput.maxLength = settings.length;
+    guessInput.placeholder = `Enter ${settings.length} unique digits`;
+    guessInput.disabled = false;
+
+    historyList.replaceChildren();
+    guessFeedback.textContent = '';
+
+    gameInfo.textContent = `New game started. Find the ${settings.length}-digit number in base ${settings.base}.`;
+
+    updateSubmitButton();
+    guessInput.focus();
+  }
+
+  guessInput.addEventListener('input', () => {
+    if (!currentGame) {
+      return;
+    }
+
+    const { length, base } = currentGame.settings;
+    const isValidDigit = createDigitValidator(base);
+    const digits = [...guessInput.value.toLowerCase()];
+
+    guessInput.value = digits
+      .filter((digit, index) => isValidDigit(digit) && digits.indexOf(digit) === index)
+      .slice(0, length)
+      .join('');
+
+    updateSubmitButton();
+  });
+
+  guessForm.addEventListener('submit', (event: SubmitEvent) => {
+    event.preventDefault();
+
+    if (!currentGame || currentGame.status === 'won') {
+      return;
+    }
+
+    const guess = guessInput.value;
+
+    if (!isValidGuess(guess, currentGame.settings.length, currentGame.settings.base)) {
+      guessFeedback.textContent = 'Enter a valid guess with unique digits.';
+      return;
+    }
+
+    const normalizedGuess = guess.toLowerCase();
+    const isDuplicate = currentGame.history.some((entry) => entry.guess === normalizedGuess);
+
+    if (isDuplicate) {
+      guessFeedback.textContent = 'You have already tried this number.';
+      return;
+    }
+
+    currentGame = submitGuess(currentGame, normalizedGuess);
+
+    const lastEntry = currentGame.history[currentGame.history.length - 1];
+
+    if (!lastEntry) {
+      return;
+    }
+
+    historyList.prepend(createHistoryItem(lastEntry.guess, lastEntry.result.bulls, lastEntry.result.cows));
+
+    guessInput.value = '';
+    guessFeedback.textContent = '';
+
+    if (currentGame.status === 'won') {
+      gameInfo.textContent = `Congratulations! You found the secret number: ${currentGame.secret}.`;
+      guessFeedback.textContent = `Solved in ${currentGame.history.length} attempts!`;
+      guessInput.disabled = true;
+    } else {
+      gameInfo.textContent = `Attempts: ${currentGame.history.length}`;
+      guessInput.focus();
+    }
+
+    updateSubmitButton();
+  });
+
+  const settingsPanel = createSettingsPanel(startGame);
+
+  main.append(settingsPanel, gamePanel, historyPanel, leaderboardPanel);
   app.append(header, main);
 
   root.append(app);
