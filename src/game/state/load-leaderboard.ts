@@ -1,5 +1,5 @@
-import { MIN_SECRET_LENGTH, SUPPORTED_BASES } from '../logic/constants';
-import type { GameRecord } from '../types/game-record';
+import { MIN_SECRET_LENGTH, SUPPORTED_BASES } from '../logic/constants.js';
+import type { GameRecord } from '../types/game-record.js';
 
 type StorageLike = Pick<Storage, 'getItem'>;
 

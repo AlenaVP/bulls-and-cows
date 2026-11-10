@@ -1,4 +1,4 @@
-import type { GameSettings } from './game-settings';
+import type { GameSettings } from './game-settings.js';
 
 export interface GameRecord {
   settings: GameSettings;

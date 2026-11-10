@@ -1,6 +1,6 @@
-import { getGameDuration } from './get-game-duration';
-import type { GameRecord } from '../types/game-record';
-import type { GameState } from '../types/game-state';
+import { getGameDuration } from './get-game-duration.js';
+import type { GameRecord } from '../types/game-record.js';
+import type { GameState } from '../types/game-state.js';
 
 export function createGameRecord(state: GameState): GameRecord | null {
   if (state.status !== 'won' || state.finishedAt === null) {

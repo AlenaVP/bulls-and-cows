@@ -1,5 +1,5 @@
-import type { GameSettings } from './game-settings';
-import type { GuessHistoryEntry } from './guess-history-entry';
+import type { GameSettings } from './game-settings.js';
+import type { GuessHistoryEntry } from './guess-history-entry.js';
 
 export type GameStatus = 'playing' | 'won';
 

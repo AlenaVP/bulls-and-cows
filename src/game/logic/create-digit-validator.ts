@@ -1,4 +1,4 @@
-import { DIGITS, MAX_BASE, MIN_BASE, SUPPORTED_BASES } from './constants';
+import { DIGITS, MAX_BASE, MIN_BASE, SUPPORTED_BASES } from './constants.js';
 
 export function createDigitValidator(base: number): (char: string) => boolean {
   if (!Number.isInteger(base) || base < MIN_BASE || base > MAX_BASE) {

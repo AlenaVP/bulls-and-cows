@@ -1,6 +1,6 @@
-import { evaluateGuess } from '../logic/evaluate-guess';
-import { isValidGuess } from '../logic/is-valid-guess';
-import type { GameState } from '../types/game-state';
+import { evaluateGuess } from '../logic/evaluate-guess.js';
+import { isValidGuess } from '../logic/is-valid-guess.js';
+import type { GameState } from '../types/game-state.js';
 
 export function submitGuess(state: GameState, guess: string, clock: () => number = Date.now): GameState {
   if (state.status === 'won' || !isValidGuess(guess, state.settings.length, state.settings.base)) {

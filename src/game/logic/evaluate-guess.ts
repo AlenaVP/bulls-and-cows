@@ -1,4 +1,4 @@
-import type { GuessResult } from '../types/guess-result';
+import type { GuessResult } from '../types/guess-result.js';
 
 export function evaluateGuess(secret: string, guess: string): GuessResult {
   const normalizedSecret = secret.toLowerCase().split('');

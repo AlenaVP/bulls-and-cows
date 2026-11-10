@@ -1,7 +1,7 @@
-import type { GameRecord } from '../types/game-record';
-import { getLeaderboard } from './get-leaderboard';
-import { loadLeaderboard } from './load-leaderboard';
-import { saveLeaderboard } from './save-leaderboard';
+import type { GameRecord } from '../types/game-record.js';
+import { getLeaderboard } from './get-leaderboard.js';
+import { loadLeaderboard } from './load-leaderboard.js';
+import { saveLeaderboard } from './save-leaderboard.js';
 
 type StorageLike = Pick<Storage, 'getItem' | 'setItem'>;
 

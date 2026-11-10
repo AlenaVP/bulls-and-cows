@@ -1,6 +1,6 @@
-import { generateSecret } from '../logic/generate-secret';
-import type { GameSettings } from '../types/game-settings';
-import type { GameState } from '../types/game-state';
+import { generateSecret } from '../logic/generate-secret.js';
+import type { GameSettings } from '../types/game-settings.js';
+import type { GameState } from '../types/game-state.js';
 
 export function createGame(
   settings: GameSettings,

@@ -1,4 +1,4 @@
-import { DIGITS, MIN_SECRET_LENGTH, SUPPORTED_BASES } from './constants';
+import { DIGITS, MIN_SECRET_LENGTH, SUPPORTED_BASES } from './constants.js';
 
 export function generateSecret(length: number, base: number, random: () => number = Math.random): string {
   if (!SUPPORTED_BASES.includes(base)) {

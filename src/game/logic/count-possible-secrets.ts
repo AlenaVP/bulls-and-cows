@@ -1,4 +1,4 @@
-import { MIN_SECRET_LENGTH, SUPPORTED_BASES } from './constants';
+import { MIN_SECRET_LENGTH, SUPPORTED_BASES } from './constants.js';
 
 const memo = new Map<string, number>();
 

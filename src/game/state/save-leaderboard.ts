@@ -1,5 +1,5 @@
-import { LEADERBOARD_STORAGE_KEY } from '../logic/constants';
-import type { GameRecord } from '../types/game-record';
+import { LEADERBOARD_STORAGE_KEY } from '../logic/constants.js';
+import type { GameRecord } from '../types/game-record.js';
 
 type StorageLike = Pick<Storage, 'setItem'>;
 
