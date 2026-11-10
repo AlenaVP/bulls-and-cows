@@ -315,19 +315,17 @@ The additional space is used by the normalized arrays and intermediate arrays pr
 The function:
 
 1. Checks the guess length.
-2. Creates a digit validator.
+2. Creates a digit validator and an array of valid digits for the selected base.
 3. Normalizes and splits the guess.
 4. Checks every digit using `every()`.
 5. Creates a `Set` to detect duplicates.
 
-The validation operations are linear with respect to the guess length.
+Creating the valid digit array requires \(O(base)\) time. Each character validation uses `includes()`, which takes up to \(O(base)\) time. Since this check is performed for each character, the overall complexity is:
 
-Therefore:
+- **Time complexity:** \(O(length \cdot base)\)
+- **Space complexity:** \(O(length + base)\)
 
-- **Time complexity:** \(O(length)\)
-- **Space complexity:** \(O(length)\)
-
-The additional space is used by the normalized digit array and the `Set`.
+The additional space is used by the valid digit array, normalized guess array, and `Set`.
 
 ### 4.4. `countPossibleSecrets(length, base)`
 
