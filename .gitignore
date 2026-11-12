@@ -1,3 +1,6 @@
+#IDE
+.vscode/
+
 # Logs
 logs
 *.log
@@ -81,6 +84,7 @@ out
 # Nuxt.js build / generate output
 .nuxt
 dist
+_site
 .output
 
 # Gatsby files
