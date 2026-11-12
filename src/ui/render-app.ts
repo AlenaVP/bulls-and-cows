@@ -57,7 +57,10 @@ function createSelectField(
   return { field, select };
 }
 
-function createSettingsPanel(onStartGame: (settings: GameSettings) => void): HTMLElement {
+function createSettingsPanel(onStartGame: (settings: GameSettings) => void): {
+  panel: HTMLElement;
+  setDisabled: (disabled: boolean) => void;
+} {
   const panel = createPanel('Game settings', 'Choose the number length and numeral system.', 'panel--settings');
 
   const form = document.createElement('div');
@@ -93,6 +96,12 @@ function createSettingsPanel(onStartGame: (settings: GameSettings) => void): HTM
     lengthSelect.value = String(Math.min(currentLength, maxLength));
   }
 
+  function setDisabled(disabled: boolean): void {
+    baseSelect.disabled = disabled;
+    lengthSelect.disabled = disabled;
+    startButton.disabled = disabled;
+  }
+
   baseSelect.addEventListener('change', updateLengthOptions);
 
   startButton.addEventListener('click', () => {
@@ -105,7 +114,7 @@ function createSettingsPanel(onStartGame: (settings: GameSettings) => void): HTM
   form.append(baseField.field, lengthField.field, startButton);
   panel.append(form);
 
-  return panel;
+  return { panel, setDisabled };
 }
 
 function createHistoryItem(guess: string, bulls: number, cows: number): HTMLLIElement {
@@ -300,10 +309,13 @@ export function renderApp(root: HTMLElement): void {
     submitButton.disabled = !isValidGuess(guessInput.value, currentGame.settings.length, currentGame.settings.base);
   }
 
+  const settingsPanel = createSettingsPanel(startGame);
+
   function startGame(settings: GameSettings): void {
     stopTimer();
 
     currentGame = createGame(settings);
+    settingsPanel.setDisabled(true);
 
     guessInput.value = '';
     guessInput.maxLength = settings.length;
@@ -383,6 +395,7 @@ export function renderApp(root: HTMLElement): void {
       gameInfo.textContent = `Congratulations! You found the secret number: ${currentGame.secret}.`;
       guessFeedback.textContent = `Solved in ${currentGame.history.length} attempts and ${duration}!`;
       guessInput.disabled = true;
+      settingsPanel.setDisabled(false);
 
       const record = createGameRecord(currentGame);
 
@@ -398,11 +411,9 @@ export function renderApp(root: HTMLElement): void {
     updateSubmitButton();
   });
 
-  const settingsPanel = createSettingsPanel(startGame);
-
   renderLeaderboard();
 
-  main.append(settingsPanel, gamePanel, historyPanel, leaderboardPanel);
+  main.append(settingsPanel.panel, gamePanel, historyPanel, leaderboardPanel);
   app.append(header, main);
 
   root.append(app);
